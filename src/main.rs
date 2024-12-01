@@ -20,8 +20,30 @@ fn read_lines(day: u8) -> impl Iterator<Item = Result<String, impl std::error::E
 }
 
 fn day_1() {
-    println!("Result for day 1: {}", 0);
     let inputs = read_lines(1);
+    let mut list1: Vec<i32> = Vec::new();
+    let mut list2: Vec<i32> = Vec::new();
+
+    for line in inputs {
+        let temp_vec: Vec<i32> = line.unwrap().split_whitespace().map(|s| s.parse::<i32>().unwrap()).collect();
+        list1.push(temp_vec[0]);
+        list2.push(temp_vec[1]);
+    }
+    list1.sort();
+    list2.sort();
+
+    let mut diff_list: Vec<i32> = Vec::new();
+    for (num1, num2) in list1.iter().zip(list2.iter()) {
+        diff_list.push((num1 - num2).abs());        
+    }
+    let result1: i32 = diff_list.iter().sum();
+
+    let  mut similarity: i32 = 0;
+    for number in list1 {
+        let occurences: i32 = list2.iter().filter(|x| **x==number).count().try_into().unwrap();
+        similarity += occurences * number;
+    }
+    println!("Results for day 1: {} and {}", result1, similarity);
 }
 
 fn day_2() {
