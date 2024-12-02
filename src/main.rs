@@ -46,9 +46,58 @@ fn day_1() {
     println!("Results for day 1: {} and {}", result1, similarity);
 }
 
+fn check_report(input_vec: &Vec<i32>) -> bool {
+    let mut increasing = true;
+    let mut decreasing: bool = true;
+    let mut proper_dist: bool = true;
+    for (index, _) in input_vec.iter().enumerate() {
+        if index == 0 {
+            continue;
+        }
+        if input_vec[index] < input_vec[index - 1] {
+            increasing = false;
+        }
+        if input_vec[index] > input_vec[index - 1] {
+            decreasing = false;
+        }
+        if (input_vec[index] - input_vec[index - 1]).abs() < 1 || (input_vec[index] - input_vec[index - 1]).abs() > 3 {
+            proper_dist = false;
+        }
+    }
+    if (increasing || decreasing) & proper_dist {
+        return true;
+    }
+    return false;
+}
+
 fn day_2() {
-    println!("Result for day 2: {}", 0);
     let inputs = read_lines(2);
+    let mut nreports_save: u32 = 0;
+    let mut nreports_save2: u32 = 0;
+    for line in inputs {
+        // PART ONE
+        let row_vec: Vec<i32> = line.unwrap().split_whitespace().map(|s| s.parse::<i32>().unwrap()).collect();
+        if check_report(&row_vec) {
+            nreports_save += 1;
+        }
+        // Part TWO
+        if check_report(&row_vec) {
+            nreports_save2 += 1;
+            continue;
+        }
+        for i in 0..row_vec.len() {
+        let temp_vec: Vec<i32> = row_vec.iter()
+            .enumerate()
+            .filter(|&(index,_)| index != i)
+            .map(|(_, &val)| val)
+            .collect();
+            if check_report(&temp_vec) {
+                nreports_save2 += 1;
+                break;
+            }
+        }
+    }
+    println!("Results for day 2: {} and {}", nreports_save, nreports_save2);
 }
 
 fn day_3() {
