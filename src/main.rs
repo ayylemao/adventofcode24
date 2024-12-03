@@ -9,6 +9,7 @@ use std::{
     io::{BufRead, BufReader},
     path::Path,
 };
+use regex::Regex;
 
 fn read_lines(day: u8) -> impl Iterator<Item = Result<String, impl std::error::Error>> {
     let cargo_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
@@ -101,8 +102,51 @@ fn day_2() {
 }
 
 fn day_3() {
-    println!("Result for day 3: {}", 0);
     let inputs = read_lines(3);
+    let re1 = Regex::new(r"mul\(\s*(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)\s*\)").unwrap();
+
+    //let mut extracted_strings: Vec<String> = Vec::new();
+    //for line in inputs {
+    //    for hit in re1.captures_iter(line.unwrap().as_str()) {
+    //        let matched: String = String::from(&hit[0]);
+    //        extracted_strings.push(matched.replace("mul(", "").replace(")", ""));
+    //    }
+    //}
+    //let formated: Vec<Vec<i32>> = extracted_strings.iter() 
+    //            .map(|x| x.split(",")
+    //                .map(|x| x.parse::<i32>()
+    //                .unwrap()).collect::<Vec<_>>())
+    //            .collect();
+    //let result_part1: i32 = formated.iter().map(|x| x[0]*x[1]).sum();
+    //println!("{:?}", result_part1);
+
+    let re2 = Regex::new(r"(?P<instruction>do\(\)|don't\(\)|mul\(\s*-?\d+\.?\d*\s*,\s*-?\d+\.?\d*\s*\))").unwrap();
+    let mut mul_enabled = true;
+    let mut extracted_muls = Vec::new();
+    for line in inputs {
+        for caps in re2.captures_iter(line.unwrap().as_str()) {
+            let instruction = &caps["instruction"];
+
+            if instruction == "do()" {
+                mul_enabled = true;
+            } else if instruction == "don't()" {
+                mul_enabled = false;                
+            } else if instruction.starts_with("mul") {
+                if mul_enabled {
+                    let cleaned = instruction.replace("mul(", "").replace(")", "");
+                    extracted_muls.push(cleaned);
+                }
+            }
+        }
+    }
+    let formated: Vec<Vec<i32>> = extracted_muls.iter() 
+                .map(|x| x.split(",")
+                    .map(|x| x.parse::<i32>()
+                    .unwrap()).collect::<Vec<_>>())
+                .collect();
+    let result_part2: i32 = formated.iter().map(|x| x[0]*x[1]).sum();
+    println!("{:?}", result_part2);
+    
 }
 
 fn day_4() {
