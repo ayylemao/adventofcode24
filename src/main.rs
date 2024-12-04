@@ -10,6 +10,7 @@ use std::{
     path::Path,
 };
 use regex::Regex;
+use ndarray::{Array, Array1, Array2, Axis};
 
 fn read_lines(day: u8) -> impl Iterator<Item = Result<String, impl std::error::Error>> {
     let cargo_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
@@ -149,9 +150,119 @@ fn day_3() {
     
 }
 
+fn diagonal_tuples(n: usize) -> Vec<Vec<(usize, usize)>> {
+    let mut diagonals = Vec::new();
+
+    // Below and including the main diagonal
+    for offset in 0..n {
+        let mut diag = Vec::new();
+        for i in 0..(n - offset) {
+            diag.push((i + offset, i)); // (row, column)
+        }
+        diagonals.push(diag);
+    }
+
+    // Above the main diagonal
+    for offset in 1..n {
+        let mut diag = Vec::new();
+        for i in 0..(n - offset) {
+            diag.push((i, i + offset)); // (row, column)
+        }
+        diagonals.push(diag);
+    }
+
+    diagonals
+}
+
+fn reverse_diagonal_tuples(n: usize) -> Vec<Vec<(usize, usize)>> {
+    let mut diagonals = Vec::new();
+
+    // Reverse diagonals starting from the first row
+    for start_col in 0..n {
+        let mut diag = Vec::new();
+        let mut row = 0;
+        let mut col = start_col;
+        while row < n && col < n {
+            diag.push((row, col)); // (row, column)
+            row += 1;
+            col = col.wrapping_sub(1); // Decrease column index
+        }
+        diagonals.push(diag);
+    }
+
+    // Reverse diagonals starting from the first column (excluding the top-right corner diagonal)
+    for start_row in 1..n {
+        let mut diag = Vec::new();
+        let mut row = start_row;
+        let mut col = n - 1;
+        while row < n && col < n {
+            diag.push((row, col)); // (row, column)
+            row += 1;
+            col = col.wrapping_sub(1); // Decrease column index
+        }
+        diagonals.push(diag);
+    }
+
+    diagonals
+}
+
 fn day_4() {
-    println!("Result for day 4: {}", 0);
     let inputs = read_lines(4);
+    let inputs_vec: Vec<String> = inputs.map(|x| x.unwrap()).collect();
+    let columns: usize = inputs_vec[0].chars().count();  
+    let rows: usize = inputs_vec.len();
+    println!("{}, {}", rows, columns);
+
+    let mut char_array: Array2<char> = Array::from_elem((rows, columns), '\0');
+
+    // Populate array
+    for row in 0..rows {
+        let row_chars: Vec<char> = inputs_vec[row].chars().collect();
+        for col in 0..columns {
+            char_array[[row, col]] = row_chars[col];
+        }
+    }
+
+    let mut count: usize = 0;
+    // Through rows, backwards and forwards
+    for row in 0..columns {
+        let string_to_check: String = char_array.index_axis(Axis(0), row).iter().collect();
+        count += string_to_check.matches("XMAS").count();
+        count += string_to_check.matches("SAMX").count();
+    } 
+
+    // Top down and down up
+    let char_array_T: Array2<char> = char_array.t().to_owned();
+    for row in 0..columns {
+        let string_to_check: String = char_array_T.index_axis(Axis(0), row).iter().collect();
+        count += string_to_check.matches("XMAS").count();
+        count += string_to_check.matches("SAMX").count();
+    } 
+
+    // diagonals
+    let diagonal_indices = diagonal_tuples(columns);
+    for diagonal in diagonal_indices {
+        let mut string_to_check: String = String::new();
+        for (row, col) in diagonal {
+            string_to_check.push_str(&char_array[[row, col]].to_string());
+        }
+        count += string_to_check.matches("XMAS").count();
+        count += string_to_check.matches("SAMX").count();
+    }
+
+    // reverse diagonals
+    let reverse_diagonal_indices = reverse_diagonal_tuples(columns);
+    for diagonal in reverse_diagonal_indices {
+        let mut string_to_check: String = String::new();
+        for (row, col) in diagonal {
+            string_to_check.push_str(&char_array[[row, col]].to_string());
+        }
+        count += string_to_check.matches("XMAS").count();
+        count += string_to_check.matches("SAMX").count();
+    }
+
+
+    println!("{}", count);
 }
 
 fn day_5() {
